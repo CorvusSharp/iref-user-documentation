@@ -134,6 +134,7 @@ Lead State = "lead-declined"
 | `duplicates` | declined + Rejection Reason содержит DUPLICATE |
 | `payout` | сумма Lead Payout (только pushed) |
 | `revenue` | сумма Lead Revenue (только pushed) |
+| `margin` | `revenue − payout` (маржа на баера) |
 
 > `pushed = valid + invalid + empty`
 
@@ -210,10 +211,13 @@ score = CR_score + Vol_score - Inv_penalty - Dup_penalty
 Баер исключается из анализа, если выполняется **хотя бы одно**:
 
 | Условие | Что значит |
-|---------|-----------|
+|---------|----------|
 | `aff_sub2` содержит `test` | Тестовый трафик |
 | Первый лид в последние **3 дня** периода | Слишком новый баер |
 | ≤ 5 pushed **и** ≤ 10 total | Слишком мало данных |
+
+> ℹ️ Проверка идёт по **всем** лидам баера (кроме inject), без фильтрации по рабочим часам КЦ.
+> `total` = все не-inject лиды, `pushed` = Lead State ∈ {lead-pushed, ftd}.
 
 ---
 
@@ -230,6 +234,8 @@ score = CR_score + Vol_score - Inv_penalty - Dup_penalty
 lead_type = CPA, если CPA-лидов больше, чем CPL
 lead_type = CPL, иначе
 ```
+
+> ℹ️ `lead_type` вычисляется в данных баера, но пока не отображается в таблицах отчёта и CSV.
 
 ---
 
@@ -248,8 +254,10 @@ lead_type = CPL, иначе
 ## 12. Выходные файлы
 
 | Файл | Содержимое |
-|------|-----------|
-| `sheet1_live_leads.csv` | Баеры по Live-потоку (score, CR, action, гео, рекламодатели) |
-| `sheet2_inject_leads.csv` | Баеры по Inject-потоку |
-| `sheet3_summary.csv` | Сводка: totals, top/bottom баеры, связки affiliate × geo |
-| `buyer_report.html` | Интерактивный HTML-отчёт со всеми таблицами |
+|------|----------|
+| `sheet1_live_leads.csv` | Buyer, Geo, Valid, Invalid, Total, FTD, CR%, Duplicates, Dup%, Advertiser, Score, Action |
+| `sheet2_inject_leads.csv` | Buyer, Valid Inject, Invalid Inject, Total Inject, FTD Inject, CR Inject% |
+| `sheet3_summary.csv` | Buyer, Total Leads, Total FTD, CR%, Invalid Rate%, Dup Rate%, Inject Share%, Score, Action |
+| `buyer_report.html` | Интерактивный HTML-отчёт: KPI, Decision Table, Top/Bottom-20, Inject, все баеры с гео-детализацией, Geo Explorer, связки |
+
+> ℹ️ `margin` и `lead_type` вычисляются в коде, но пока не выводятся в CSV/HTML.
