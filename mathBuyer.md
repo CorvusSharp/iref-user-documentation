@@ -8,7 +8,7 @@
 | **conversions** | UUID лидов с `Goal Type = ftd` |
 | **sales** | UUID лидов с `Sale Status Registry = ftd` |
 
-**FTD UUID** — объединение из трёх источников:
+**FTD UUID** (CPA-конверсии — клиент сделал первый депозит) — объединение из трёх источников:
 - leads → `Lead State = ftd`
 - conversions → `Goal Type = ftd`
 - sales → `Sale Status Registry = ftd`
@@ -125,11 +125,11 @@ Lead State = "lead-declined"
 
 | Счётчик | Условие |
 |---------|---------|
-| `pushed` | `Lead State` ∈ {`lead-pushed`, `ftd`} |
+| `pushed` | `Lead State` ∈ {`lead-pushed` (CPL), `ftd` (CPA)} |
 | `valid` | pushed + Sale Status → valid |
 | `invalid` | pushed + Sale Status → invalid |
 | `empty` | pushed + Sale Status → empty |
-| `ftd` | UUID ∈ FTD_set **или** Lead State = `ftd` |
+| `ftd` | UUID ∈ FTD_set **или** Lead State = `ftd` — это CPA-конверсии (клиент внёс депозит) |
 | `declined` | `Lead State` = `lead-declined` |
 | `duplicates` | declined + Rejection Reason содержит DUPLICATE |
 | `payout` | сумма Lead Payout (только pushed) |
@@ -147,8 +147,8 @@ Lead State = "lead-declined"
 CR = FTD / (pushed + declined - duplicates) × 100%
 ```
 
-- **Числитель**: FTD — лиды, сделавшие первый депозит
-- **Знаменатель**: все лиды (pushed + declined) минус дубли
+- **Числитель**: FTD — CPA-конверсии (клиент сделал первый депозит)
+- **Знаменатель**: все лиды (CPL `lead-pushed` + CPA `ftd` + `lead-declined`) минус дубли
 - Empty лиды входят в знаменатель через `pushed`
 
 ### Invalid Rate
@@ -219,10 +219,14 @@ score = CR_score + Vol_score - Inv_penalty - Dup_penalty
 
 ## 10. Тип лида (CPL / CPA)
 
-```
-Если payout ≥ $1000 → CPA
-Если payout <  $1000 → CPL
+**На уровне лида:**
+- `Lead State = lead-pushed` → **CPL** (оплата за лид)
+- `Lead State = ftd` → **CPA** (оплата за депозит/конверсию)
 
+**Порог по payout:** `payout ≥ $1000` → считается CPA-лидом в счётчиках
+
+**На уровне баера:**
+```
 lead_type = CPA, если CPA-лидов больше, чем CPL
 lead_type = CPL, иначе
 ```
