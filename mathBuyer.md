@@ -223,7 +223,7 @@ score = CR_score + Vol_score - Inv_penalty - Dup_penalty
 - `Lead State = lead-pushed` → **CPL** (оплата за лид)
 - `Lead State = ftd` → **CPA** (оплата за депозит/конверсию)
 
-**Порог по payout:** `payout ≥ $1000` → считается CPA-лидом в счётчиках
+> Тип определяется **только** по `Lead State`, порог payout не используется.
 
 **На уровне баера:**
 ```
